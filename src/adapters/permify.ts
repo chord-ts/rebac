@@ -6,7 +6,12 @@ import {
 	Tuple as PermifyTuple,
 } from '@permify/permify-node/dist/src/grpc/generated/base/v1/base'
 import { Any } from '@permify/permify-node/dist/src/grpc/generated/google/protobuf/any'
+import type { Adapter } from '../types'
 
+
+export class Permify implements Adapter { 
+
+}
 
 
 export const permify = grpc.newClient(
