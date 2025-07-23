@@ -10,7 +10,20 @@ import type { Adapter } from '../types'
 
 
 export class Permify implements Adapter { 
+  constructor(client: ReturnType<typeof grpc.newClient>, tenantId: string = 't1') {
 
+  }
+
+
+  write() {
+
+  }
+
+  delete() [
+
+  ]
+
+  
 }
 
 
