@@ -58,10 +58,117 @@ export class ReBAC<
   get tuple() {
     return subject(Kinds.TUPLE)
   }
+
+	get  entity() {
+		return entityProxy<Relations, Tuple>({
+  __kind: Kinds.ENTITY,
+  entity: {},
+}) as unknown as Record<
+  Entities | Relations,
+  (id: string | string[]) => EntityRef
+>
+	}
+
+
+
+
+
+	// Parameters<typeof permify.data.write>[0]['tuples'])
+	async function connect(...tuples: Tuple[]) {
+  for (const tuple of tuples) {
+    if (
+      typeof tuple.subject!.id === 'object' ||
+      typeof tuple.entity!.id === 'object'
+    ) {
+      throw Error(
+        `Permify - wrong tuple for connect. Id must be string: ${tuple}`,
+      )
+    }
+  }
+  // @ts-ignore
+  const attributes = ([] as Attribute[]).concat(
+    ...tuples.map((t) => t.attrs),
+  ) as PermifyAttr[]
+
+  return await permify.data.write({
+    tenantId,
+    metadata,
+    // @ts-ignore
+    tuples,
+    attributes,
+  })
+}
+
+export async function disconnect(...tuples: Tuple[]) {
+  const promises: Promise<unknown>[] = []
+  for (const tuple of tuples) {
+    if (!Array.isArray(tuple.entity.id) || !Array.isArray(tuple.subject.id)) {
+      throw Error(
+        `Permify - wrong tuple for disconnect. Subject and entity ids must be arrays of ids: ${JSON.stringify(tuple)}`,
+      )
+    }
+
+    promises.push(
+      permify.data.delete({
+        tenantId,
+        tupleFilter: {
+          entity: {
+            type: tuple.entity.type,
+            ids: tuple.entity.id as string[],
+          },
+          relation: tuple.relation,
+          subject: {
+            type: tuple.subject.type,
+            ids: tuple.subject.id as string[],
+          },
+        },
+        attributeFilter: {},
+      }),
+    )
+  }
+
+  await Promise.all(promises)
+}
+
+// Удаляет все связи сущности (в виде Entity и Subject)
+export async function fullDisconnect(...entities: EntityRef[]) {
+  const promises: Promise<unknown>[] = []
+  for (const entity of entities) {
+    entity.id = typeof entity.id === 'string' ? [entity.id] : entity.id
+
+    promises.push(
+      permify.data.delete({
+        tenantId,
+        tupleFilter: {
+          entity: {
+            type: entity.type,
+            ids: entity.id as string[],
+          },
+        },
+        attributeFilter: {},
+      }),
+    )
+    promises.push(
+      permify.data.delete({
+        tenantId,
+        tupleFilter: {
+          subject: {
+            type: entity.type,
+            ids: entity.id as string[],
+          },
+        },
+        attributeFilter: {},
+      }),
+    )
+  }
+
+  await Promise.all(promises)
+}
+
 }
 
 
-function permission<Entities, Relations>(target) {
+function permission<Entities, Relations>(target: Tuple) {
   return new Proxy(target, {
     get(target, prop, receiver) {
       target.permission = prop.toString()
@@ -70,7 +177,7 @@ function permission<Entities, Relations>(target) {
   })
 }
 
-function entityProxy<T, P>(target) {
+function entityProxy<T, P>(target: Tuple) {
   return new Proxy(target, {
     get(target, prop, receiver) {
       target.entity.type = prop.toString()
@@ -165,128 +272,3 @@ function entityProxy<T, P>(target) {
   })
 }
 
-export const entity = entityProxy<Relations, Tuple>({
-  __kind: Kinds.ENTITY,
-  entity: {},
-}) as unknown as Record<
-  Entities | Relations,
-  (id: string | string[]) => EntityRef
->
-
-export const who = subject(Kinds.FILTER_SUBJECT) as unknown as Subject<
-  Entities,
-  Relations,
-  Promise<string[]>
->
-export const can = subject(Kinds.CHECK) as unknown as Subject<
-  Entities,
-  Permissions,
-  Promise<boolean>
->
-export const tuple = subject(Kinds.TUPLE) as unknown as Subject<
-  Entities,
-  Relations,
-  Tuple
->
-export const what = subject(Kinds.PERMISSIONS) as unknown as Subject<
-  Entities,
-  'canDo',
-  Promise<Record<Permissions | Relations, boolean>>
->
-export const where = subject(Kinds.FILTER_ENTITY) as unknown as Subject<
-  Entities,
-  Permissions,
-  Promise<string[]>
->
-
-// Parameters<typeof permify.data.write>[0]['tuples'])
-export async function connect(...tuples: Tuple[]) {
-  for (const tuple of tuples) {
-    if (
-      typeof tuple.subject!.id === 'object' ||
-      typeof tuple.entity!.id === 'object'
-    ) {
-      throw Error(
-        `Permify - wrong tuple for connect. Id must be string: ${tuple}`,
-      )
-    }
-  }
-  // @ts-ignore
-  const attributes = ([] as Attribute[]).concat(
-    ...tuples.map((t) => t.attrs),
-  ) as PermifyAttr[]
-
-  return await permify.data.write({
-    tenantId,
-    metadata,
-    // @ts-ignore
-    tuples,
-    attributes,
-  })
-}
-
-export async function disconnect(...tuples: Tuple[]) {
-  const promises: Promise<unknown>[] = []
-  for (const tuple of tuples) {
-    if (!Array.isArray(tuple.entity.id) || !Array.isArray(tuple.subject.id)) {
-      throw Error(
-        `Permify - wrong tuple for disconnect. Subject and entity ids must be arrays of ids: ${JSON.stringify(tuple)}`,
-      )
-    }
-
-    promises.push(
-      permify.data.delete({
-        tenantId,
-        tupleFilter: {
-          entity: {
-            type: tuple.entity.type,
-            ids: tuple.entity.id as string[],
-          },
-          relation: tuple.relation,
-          subject: {
-            type: tuple.subject.type,
-            ids: tuple.subject.id as string[],
-          },
-        },
-        attributeFilter: {},
-      }),
-    )
-  }
-
-  await Promise.all(promises)
-}
-
-// Удаляет все связи сущности (в виде Entity и Subject)
-export async function fullDisconnect(...entities: EntityRef[]) {
-  const promises: Promise<unknown>[] = []
-  for (const entity of entities) {
-    entity.id = typeof entity.id === 'string' ? [entity.id] : entity.id
-
-    promises.push(
-      permify.data.delete({
-        tenantId,
-        tupleFilter: {
-          entity: {
-            type: entity.type,
-            ids: entity.id as string[],
-          },
-        },
-        attributeFilter: {},
-      }),
-    )
-    promises.push(
-      permify.data.delete({
-        tenantId,
-        tupleFilter: {
-          subject: {
-            type: entity.type,
-            ids: entity.id as string[],
-          },
-        },
-        attributeFilter: {},
-      }),
-    )
-  }
-
-  await Promise.all(promises)
-}

@@ -19,6 +19,19 @@ function castBoolean(value: boolean) {
 
 
 export class Permify implements Adapter { 
+  constructor(client: ReturnType<typeof grpc.newClient>, tenantId: string = 't1') {
+
+  }
+
+
+  write() {
+
+  }
+
+  delete() [
+
+  ]
+
   
 }
 
