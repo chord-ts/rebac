@@ -9,8 +9,17 @@ import { Any } from '@permify/permify-node/dist/src/grpc/generated/google/protob
 import type { Adapter } from '../types'
 
 
-export class Permify implements Adapter { 
+function castBoolean(value: boolean) {
+  const booleanValue = BooleanValue.fromJSON({ data: value })
+  return Any.fromJSON({
+    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',
+    value: BooleanValue.encode(booleanValue).finish(),
+  })
+}
 
+
+export class Permify implements Adapter { 
+  
 }
 
 
@@ -29,12 +38,3 @@ export const tenantId = 't1'
 export const schemaVersion = !building ? await permify.schema.list({ tenantId }).then(r => r.head) : ''
 export const metadata = { schemaVersion, depth: 20 }
 
-function cast(value) {
-  if (typeof value === 'boolean') {
-    const booleanValue = BooleanValue.fromJSON({ data: value })
-    return Any.fromJSON({
-      typeUrl: 'type.googleapis.com/base.v1.BooleanValue',
-      value: BooleanValue.encode(booleanValue).finish(),
-    })
-  }
-}
