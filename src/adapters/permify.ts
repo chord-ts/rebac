@@ -18,7 +18,9 @@ function castBoolean(value: boolean) {
   })
 }
 
-export class Permify implements Adapter {
+export class Permify<Entities, Relations, Subjects>
+  implements Adapter<Entities, Relations, Subjects>
+{
   client: PermifyClient
   tenantId: string
   metadata: object
@@ -28,10 +30,41 @@ export class Permify implements Adapter {
     this.tenantId = tenantId ?? 't1'
     this.metadata = metadata ?? {}
   }
+  async fullDisconnect(...entities: Ref[]): Promise<void> {
+    throw new Error('Method not implemented.')
+  }
 
-  write() {}
+  async writeRelations(...tuples: Tuple[]) {
+    const { tenantId, metadata, client } = this
+    const attributes = ([] as Attribute[]).concat(
+      ...tuples.map((t) => t.attrs),
+    ) as PermifyAttr[]
 
-  async subjectPermission(target: Tuple) {
+    return await client.data.write({
+      tenantId,
+      metadata,
+      // @ts-ignore
+      tuples,
+      attributes,
+    }).then(r => console.log(r))
+  }
+
+  async grantedEntities(target: Tuple): Promise<string[]> {
+    const { tenantId, metadata, client } = this
+    return client.permission
+      .lookupSubject({
+        tenantId,
+        metadata,
+        entity: target.subject,
+        permission: target.permission,
+        subjectReference: {
+          type: target.entity.type,
+        },
+      })
+      .then((r) => r.subjectIds)
+  }
+
+  async grantedActions(target: Tuple) {
     const { tenantId, metadata, client } = this
     return client.permission
       .subjectPermission({
@@ -50,17 +83,30 @@ export class Permify implements Adapter {
       )
   }
 
-  async lookupEntity(target: Tuple) {
+  async grantedSubjects(target: Tuple) {
     const { tenantId, metadata, client } = this
 
-    const response = await client.permission.lookupEntity({
-      tenantId,
-      metadata,
-      entityType: target.entity?.type,
-      permission: target.permission,
-      subject: target.subject,
-    })
+    return client.permission
+      .lookupEntity({
+        tenantId,
+        metadata,
+        entityType: target.entity?.type,
+        permission: target.permission,
+        subject: target.subject,
+      })
+      .then((r) => r.entityIds)
+  }
 
-    return response.entityIds
+  async check(target: Tuple) {
+    const { tenantId, metadata, client } = this
+    return client.permission
+      .check({
+        tenantId,
+        metadata,
+        entity: target.entity,
+        permission: target.permission,
+        subject: target.subject,
+      })
+      .then((r) => r.can === CheckResult.CHECK_RESULT_ALLOWED)
   }
 }

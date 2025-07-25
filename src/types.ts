@@ -49,5 +49,11 @@ export type Ref = {
 
 export interface Adapter<Entities, Relations, Subjects> {
   fullDisconnect(...entities: Ref[]): Promise<void>
-  connect(...tuples: Tuple[]): Promise<void>
+  
+  writeRelations(...tuples: Tuple[]): Promise<void>
+  
+  check(target: Tuple): Promise<boolean>
+  grantedActions(target: Tuple): Promise<Record<string, boolean>>
+  grantedSubjects(target: Tuple): Promise<string[]>
+  grantedEntities(target: Tuple): Promise<string[]>
 }
