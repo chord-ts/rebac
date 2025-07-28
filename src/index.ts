@@ -1,6 +1,7 @@
 import {
   EntryPoint,
   type Adapter,
+  type MultiRef,
   type Ref,
   type Subject,
   type Tuple,
@@ -53,7 +54,7 @@ export class ReBAC<
       entity: {},
     }) as unknown as Record<
       Entities | Relations,
-      (id: string | string[]) => Ref
+      (id: string | string[]) => MultiRef
     >
   }
 
@@ -72,76 +73,16 @@ export class ReBAC<
     this.adapter.writeRelations(...tuples)
   }
 
-  public async disconnect(...tuples: Tuple[]) {
-    const promises: Promise<unknown>[] = []
-    for (const tuple of tuples) {
-      if (!Array.isArray(tuple.entity.id) || !Array.isArray(tuple.subject.id)) {
-        throw Error(
-          `Permify - wrong tuple for disconnect. Subject and entity ids must be arrays of ids: ${JSON.stringify(tuple)}`,
-        )
-      }
 
-      promises.push(
-        permify.data.delete({
-          tenantId,
-          tupleFilter: {
-            entity: {
-              type: tuple.entity.type,
-              ids: tuple.entity.id as string[],
-            },
-            relation: tuple.relation,
-            subject: {
-              type: tuple.subject.type,
-              ids: tuple.subject.id as string[],
-            },
-          },
-          attributeFilter: {},
-        }),
-      )
-    }
-
-    await Promise.all(promises)
-  }
-
-  // Удаляет все связи сущности (в виде Entity и Subject)
-  public async fullDisconnect(...entities: EntityRef[]) {
-    const promises: Promise<unknown>[] = []
-    for (const entity of entities) {
-      entity.id = typeof entity.id === 'string' ? [entity.id] : entity.id
-
-      promises.push(
-        permify.data.delete({
-          tenantId,
-          tupleFilter: {
-            entity: {
-              type: entity.type,
-              ids: entity.id as string[],
-            },
-          },
-          attributeFilter: {},
-        }),
-      )
-      promises.push(
-        permify.data.delete({
-          tenantId,
-          tupleFilter: {
-            subject: {
-              type: entity.type,
-              ids: entity.id as string[],
-            },
-          },
-          attributeFilter: {},
-        }),
-      )
-    }
-    await Promise.all(promises)
+  public async deleteEntities(...entities: MultiRef[]) {
+    return this.adapter.deleteEntities(...entities)
   }
 
   // First word
   #subject<Entities, Relations>(kind: EntryPoint) {
     const template = {
       entity: { type: '', id: '' },
-      permission: '',
+      relation: '',
       subject: { type: '', id: '' },
       attrs: [],
       __entryPoint: kind,
@@ -165,6 +106,7 @@ export class ReBAC<
     const subject = this.#entity<Entities, Relations>(target)
     return new Proxy(target, {
       get(target, prop, receiver) {
+        target.relation = prop.toString()
         target.permission = prop.toString()
         return subject
       },
@@ -179,18 +121,10 @@ export class ReBAC<
         target.entity.type = prop.toString()
 
         if (target.__entryPoint === EntryPoint.TUPLE) {
-          return (id: string, attrs?: Attributes) => {
+          // TODO think about attributes
+          return (id: string, attrs?: unknown) => {
             target.entity.id = id
-            return {
-              entity: target.entity,
-              relation: target.permission,
-              subject: target.subject,
-              attrs: Object.entries(attrs ?? {}).map(([k, v]) => ({
-                entity: { type: prop, id },
-                attribute: k,
-                value: cast(v),
-              })),
-            }
+            return target
           }
         }
 

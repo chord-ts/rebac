@@ -47,11 +47,17 @@ export type Ref = {
   id: string
 }
 
+export type MultiRef = {
+  type: string
+  id: string | string[]
+}
+
+
 export interface Adapter<Entities, Relations, Subjects> {
-  fullDisconnect(...entities: Ref[]): Promise<void>
-  
+  deleteEntities(...entities: MultiRef[]): Promise<void>
+
   writeRelations(...tuples: Tuple[]): Promise<void>
-  
+
   check(target: Tuple): Promise<boolean>
   grantedActions(target: Tuple): Promise<Record<string, boolean>>
   grantedSubjects(target: Tuple): Promise<string[]>
