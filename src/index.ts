@@ -24,11 +24,19 @@ export class ReBAC<
   }
 
   public get who() {
-    return this.#subject(EntryPoint.WHO)
+    return this.#subject(EntryPoint.WHO) as Subject<
+      Entities,
+      Relations,
+      Promise<string[]>
+    >
   }
 
   public get can() {
-    return this.#subject(EntryPoint.CAN)
+    return this.#subject(EntryPoint.CAN) as Subject<
+      Entities,
+      Permissions,
+      Promise<boolean>
+    >
   }
 
   public get what() {
@@ -40,15 +48,23 @@ export class ReBAC<
   }
 
   public get where() {
-    return this.#subject(EntryPoint.WHERE)
+    return this.#subject(EntryPoint.WHERE) as Subject<
+      Entities,
+      Permissions,
+      Promise<string[]>
+    >
   }
 
   public get tuple() {
-    return this.#subject(EntryPoint.TUPLE)
+    return this.#subject(EntryPoint.TUPLE) as Subject<
+      Entities,
+      Relations,
+      Tuple
+    >
   }
 
   public get entity() {
-    return this.#entity<Relations, Tuple>({
+    return this.#entity({
       __entryPoint: EntryPoint.ENTITY,
       // @ts-ignore
       entity: {},
@@ -73,13 +89,12 @@ export class ReBAC<
     this.adapter.writeRelations(...tuples)
   }
 
-
   public async deleteEntities(...entities: MultiRef[]) {
     return this.adapter.deleteEntities(...entities)
   }
 
   // First word
-  #subject<Entities, Relations>(kind: EntryPoint) {
+  #subject(kind: EntryPoint) {
     const template = {
       entity: { type: '', id: '' },
       relation: '',
@@ -95,15 +110,15 @@ export class ReBAC<
         target.subject.type = prop.toString()
         return (id: string) => {
           target.subject.id = id
-          return permission<Entities, Relations>(target)
+          return permission(target)
         }
       },
     })
   }
 
   // Second word
-  #permission<Entities, Relations>(target: Tuple) {
-    const subject = this.#entity<Entities, Relations>(target)
+  #permission(target: Tuple) {
+    const subject = this.#entity(target)
     return new Proxy(target, {
       get(target, prop, receiver) {
         target.relation = prop.toString()
@@ -114,7 +129,7 @@ export class ReBAC<
   }
 
   // third word
-  #entity<T, P>(target: Tuple) {
+  #entity(target: Tuple) {
     const { adapter } = this
     return new Proxy(target, {
       get(target, prop, receiver) {

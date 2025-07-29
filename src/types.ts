@@ -53,7 +53,7 @@ export type MultiRef = {
 }
 
 
-export interface Adapter<Entities, Relations, Subjects> {
+export interface Adapter {
   deleteEntities(...entities: MultiRef[]): Promise<void>
 
   writeRelations(...tuples: Tuple[]): Promise<void>

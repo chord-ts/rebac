@@ -1,0 +1,10 @@
+entity user {}
+
+entity project {
+  relation admin @user
+  relation manager @user 
+  
+  action edit = admin or manager
+  action invite = admin or manager
+  action delete = admin
+}
