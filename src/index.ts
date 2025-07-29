@@ -16,9 +16,9 @@ export class ReBAC<
   Relations extends string,
   Permissions extends string,
 > {
-  private readonly adapter: Adapter<Entities, Relations, Permissions>
+  private readonly adapter: Adapter
 
-  constructor(adapter: Adapter<Entities, Relations, Permissions>) {
+  constructor(adapter: Adapter) {
     this.adapter = adapter
     console.log(this.adapter)
   }
