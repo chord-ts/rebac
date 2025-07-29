@@ -1,6 +1,7 @@
 import {
   EntryPoint,
   type Adapter,
+  type Attribute,
   type MultiRef,
   type Ref,
   type Subject,
@@ -16,15 +17,14 @@ export class ReBAC<
   Relations extends string,
   Permissions extends string,
 > {
-  private readonly adapter: Adapter
+  readonly #adapter: Adapter
 
   constructor(adapter: Adapter) {
-    this.adapter = adapter
-    console.log(this.adapter)
+    this.#adapter = adapter
   }
 
   public get who() {
-    return this.#subject(EntryPoint.WHO) as Subject<
+    return new Sentence(EntryPoint.WHO, this.#adapter) as Subject<
       Entities,
       Relations,
       Promise<string[]>
@@ -32,7 +32,7 @@ export class ReBAC<
   }
 
   public get can() {
-    return this.#subject(EntryPoint.CAN) as Subject<
+    return new Sentence(EntryPoint.CAN, this.#adapter) as Subject<
       Entities,
       Permissions,
       Promise<boolean>
@@ -40,7 +40,7 @@ export class ReBAC<
   }
 
   public get what() {
-    return this.#subject(EntryPoint.WHAT) as Subject<
+    return new Sentence(EntryPoint.WHAT, this.#adapter) as Subject<
       Entities,
       'canDo',
       Promise<Record<Permissions | Relations, boolean>>
@@ -48,7 +48,7 @@ export class ReBAC<
   }
 
   public get where() {
-    return this.#subject(EntryPoint.WHERE) as Subject<
+    return new Sentence(EntryPoint.WHERE, this.#adapter) as Subject<
       Entities,
       Permissions,
       Promise<string[]>
@@ -56,7 +56,7 @@ export class ReBAC<
   }
 
   public get tuple() {
-    return this.#subject(EntryPoint.TUPLE) as Subject<
+    return new Sentence(EntryPoint.TUPLE, this.#adapter) as Subject<
       Entities,
       Relations,
       Tuple
@@ -64,11 +64,9 @@ export class ReBAC<
   }
 
   public get entity() {
-    return this.#entity({
-      __entryPoint: EntryPoint.ENTITY,
-      // @ts-ignore
-      entity: {},
-    }) as unknown as Record<
+    const sentence = new Sentence(EntryPoint.ENTITY, this.#adapter)
+    // @ts-ignore
+    return sentence as unknown as Record<
       Entities | Relations,
       (id: string | string[]) => MultiRef
     >
@@ -86,92 +84,91 @@ export class ReBAC<
         )
       }
     }
-    this.adapter.writeRelations(...tuples)
+    this.#adapter.writeRelations(...tuples)
   }
 
   public async deleteEntities(...entities: MultiRef[]) {
-    return this.adapter.deleteEntities(...entities)
+    return this.#adapter.deleteEntities(...entities)
   }
+}
 
-  // First word
-  #subject(kind: EntryPoint) {
-    const template = {
-      entity: { type: '', id: '' },
-      relation: '',
-      subject: { type: '', id: '' },
-      attrs: [],
-      __entryPoint: kind,
-    } as Tuple
-    const permission = this.#permission
+class Sentence implements Tuple {
+  entryPoint: EntryPoint
+  adapter: Adapter
+  permission?: string | undefined
+  relation?: string | undefined
+  attrs: Attribute[] = []
+  entity: Ref = { type: '', id: '' }
+  subject: Ref = { type: '', id: '' }
 
-    return new Proxy(template, {
+  constructor(entryPoint: EntryPoint, adapter: Adapter) {
+    // adapter: Adapter<Entities, Relations, Permissions>
+    this.entryPoint = entryPoint
+    this.adapter = adapter
+
+    return new Proxy(this, {
       get(target, prop, receiver) {
-        target = structuredClone(template)
+        console.log(prop, target)
         target.subject.type = prop.toString()
-        return (id: string) => {
-          target.subject.id = id
-          return permission(target)
+        return (id: string | string[]) => {
+          return target.#relation(target)
         }
       },
     })
   }
 
   // Second word
-  #permission(target: Tuple) {
-    const subject = this.#entity(target)
+  #relation(target: Sentence) {
     return new Proxy(target, {
       get(target, prop, receiver) {
         target.relation = prop.toString()
         target.permission = prop.toString()
-        return subject
+        return target.#entity(target)
       },
     })
   }
 
   // third word
-  #entity(target: Tuple) {
-    const { adapter } = this
-    return new Proxy(target, {
+  #entity(target: Sentence) {
+    const adapter = this.adapter
+    return new Proxy(this, {
       get(target, prop, receiver) {
         target.entity.type = prop.toString()
 
-        if (target.__entryPoint === EntryPoint.TUPLE) {
-          // TODO think about attributes
-          return (id: string, attrs?: unknown) => {
-            target.entity.id = id
-            return target
-          }
-        }
+        switch (target.entryPoint) {
+          case EntryPoint.TUPLE:
+            return (id: string, attrs?: unknown) => {
+              target.entity.id = id
+              return target
+            }
 
-        if (target.__entryPoint === EntryPoint.WHAT) {
-          return (id: string) => {
-            target.entity.id = id
-            return adapter.grantedActions(target)
-          }
-        }
+          case EntryPoint.WHAT:
+            return (id: string) => {
+              target.entity.id = id
+              return adapter.grantedActions(target)
+            }
 
-        if (target.__entryPoint === EntryPoint.WHERE) {
-          return async () => {
-            return adapter.grantedSubjects(target)
-          }
-        }
+          case EntryPoint.WHERE:
+            return async () => {
+              return adapter.grantedSubjects(target)
+            }
 
-        if (target.__entryPoint === EntryPoint.ENTITY) {
-          return (id: string) => {
-            target.entity.id = id
-            return target.entity
-          }
-        }
+          case EntryPoint.ENTITY:
+            return (id: string) => {
+              target.entity.id = id
+              return target.entity
+            }
 
-        if (target.__entryPoint === EntryPoint.WHO) {
-          return async () => {
-            return adapter.grantedEntities(target)
-          }
-        }
+          case EntryPoint.WHO:
+            return async () => {
+              return adapter.grantedEntities(target)
+            }
 
-        return async (id: string) => {
-          target.entity.id = id
-          return adapter.check(target)
+          default:
+            return async (id: string) => {
+              target.entity.id = id
+              return adapter.check(target)
+            }
         }
       },
     })

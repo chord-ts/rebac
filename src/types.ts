@@ -39,7 +39,7 @@ export type Tuple = {
   relation?: string
   subject: Ref
   attrs: Attribute[] // TODO extend types
-  __entryPoint?: EntryPoint
+  entryPoint?: EntryPoint
 }
 
 export type Ref = {
