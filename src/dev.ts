@@ -69,10 +69,15 @@ const rebac = new ReBAC<Entities, Permify, Permission>(
 )
 
 async function setup() {
-  const res = rebac.connect(
+  const res = await rebac.connect(
     rebac.tuple.user('1').admin.project('1'),
     rebac.tuple.user('2').manager.project('1'),
   )
+
+  console.log(rebac.tuple.user('1'))
+  console.log(rebac.tuple.user('1').admin)
+  console.log(rebac.tuple.user('1').admin.project('1'))
+  console.log(rebac.tuple.user('2').manager.project('1'))
 
   console.log('Added relations', res)
 }
@@ -83,6 +88,14 @@ async function checks() {
   const access3 = await rebac.can.user('2').edit.project('1')
   const access4 = await rebac.can.user('1').edit.project('1')
   console.log('Checked access:', access1, access2, access3, access4)
+
+  const actions1 = await rebac.what.user('1').canDo.project('1')
+  const actions2 = await rebac.what.user('2').canDo.project('1')
+  console.log('Checked actions:', actions1, actions2)
+
+  const accessList1 = await rebac.who.project('1').delete.user()
+  const accessList2 = await rebac.who.project('1').invite.user()
+  console.log('Checked access list:', accessList1, accessList2)
 }
 
 setup()

@@ -8,10 +8,6 @@ import {
   type Tuple,
 } from './types'
 
-// 	can.project(id).delete.member(id)
-// await fullDisconnect(entity.dbtProfile(id))
-// await fullDisconnect(entity.dbtBranch(`${projectId}_${branchId}`))
-
 export class ReBAC<
   Entities extends string,
   Relations extends string,
@@ -26,7 +22,7 @@ export class ReBAC<
   public get who() {
     return new Sentence(EntryPoint.WHO, this.#adapter) as Subject<
       Entities,
-      Relations,
+      Relations | Permissions,
       Promise<string[]>
     >
   }
@@ -84,10 +80,10 @@ export class ReBAC<
         )
       }
     }
-    this.#adapter.writeRelations(...tuples)
+    return this.#adapter.writeRelations(...tuples)
   }
 
-  public async deleteEntities(...entities: MultiRef[]) {
+  public async delete(...entities: MultiRef[]) {
     return this.#adapter.deleteEntities(...entities)
   }
 }
@@ -106,11 +102,14 @@ class Sentence implements Tuple {
     this.entryPoint = entryPoint
     this.adapter = adapter
 
+    if (entryPoint === EntryPoint.ENTITY) {
+      return this.#entity(this)
+    }
     return new Proxy(this, {
       get(target, prop, receiver) {
-        console.log(prop, target)
-        target.subject.type = prop.toString()
-        return (id: string | string[]) => {
+        target.subject.type = prop.toString()          
+        return (id: string) => {
+          target.subject.id = id
           return target.#relation(target)
         }
       },
@@ -156,6 +155,7 @@ class Sentence implements Tuple {
           case EntryPoint.ENTITY:
             return (id: string) => {
               target.entity.id = id
+              target.entity.type = prop.toString()
               return target.entity
             }
 

@@ -1,0 +1,1 @@
+export { Permify } from './permify'

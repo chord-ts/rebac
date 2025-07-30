@@ -1,20 +1,19 @@
 {
-  "name": "tsdown-starter",
-  "version": "0.0.0",
+  "name": "@chord-ts/rebac",
+  "version": "0.0.1",
   "packageManager": "pnpm@10.11.0",
-  "description": "A starter for creating a tsdown package.",
+  "description": "The onward way to use ReBAC systems in TypeScript",
   "type": "module",
   "license": "Apache-2.0",
-  "homepage": "https://github.com/gugustinette/create-tsdown#readme",
+  "homepage": "https://github.com/chord-ts/rebac#readme",
   "bugs": {
-    "url": "https://github.com/gugustinette/create-tsdown/issues"
+    "url": "https://github.com/chord-ts/rebac/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/gugustinette/create-tsdown.git"
+    "url": "https://github.com/chord-ts/rebac.git"
   },
-  "author": "三咲智子 Kevin Deng <sxzz@sxzz.moe>",
-  "funding": "https://github.com/sponsors/sxzz",
+  "author": "Dmitriy Din",
   "files": [
     "dist"
   ],
@@ -23,7 +22,9 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./package.json": "./package.json"
+    "./package.json": "./package.json",
+    "./adapters": "./dist/adapters",
+    "./helpers": "./dist/helpers"
   },
   "publishConfig": {
     "access": "public"
@@ -32,7 +33,7 @@
     "lint": "eslint --cache .",
     "lint:fix": "pnpm run lint --fix",
     "build": "tsdown",
-    "setup:permify": "tsx ./rebac/permify/setup.ts", 
+    "setup:permify": "tsx ./rebac/permify/setup.ts",
     "dev": "tsx ./src/dev.ts",
     "test": "vitest",
     "typecheck": "tsc --noEmit",

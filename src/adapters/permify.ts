@@ -18,9 +18,7 @@ function castBoolean(value: boolean) {
   })
 }
 
-export class Permify<Entities, Relations, Subjects>
-  implements Adapter<Entities, Relations, Subjects>
-{
+export class Permify implements Adapter {
   client: PermifyClient
   tenantId: string
   metadata: object
@@ -63,7 +61,13 @@ export class Permify<Entities, Relations, Subjects>
         }),
       )
     }
-    await Promise.all(promises)
+
+    let success = true
+    await Promise.all(promises).catch((e) => {
+      console.error(e)
+      success = false
+    })
+    return { success }
   }
 
   async writeRelations(...tuples: Tuple[]) {
@@ -79,7 +83,13 @@ export class Permify<Entities, Relations, Subjects>
         tuples,
         attributes,
       })
-      .then((r) => console.log(r))
+      .then(() => {
+        return { success: true }
+      })
+      .catch((e) => {
+        console.error(e)
+        return { success: false }
+      })
   }
 
   async grantedEntities(target: Tuple): Promise<string[]> {
