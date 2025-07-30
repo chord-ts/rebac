@@ -1,8 +1,19 @@
-# tsdown-starter
+<div id="header" align="center">
+<img src="./docs/network.jpg" alt="Network"/>
 
-A starter for creating a tsdown package.
+# 🎣 Chord - ReBAC
 
-## Development
+The onward way to use ReBAC (relation-based access control) systems in TypeScript with sweet syntax
+
+```ts
+tuple.developer('<ID>').uses.framework('@chord-ts/rebac')
+```
+
+<a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-3178c6?style=for-the-badge&logo=typescript&logoColor=white"></a>
+<a href="https://kit.svelte.dev/"><img src="https://img.shields.io/badge/permify-6318ff?style=for-the-badge&logo=&logoColor=FF3E00"></a>
+</div>
+
+## 🛠️ Development
 
 - Install dependencies:
 
@@ -22,14 +33,6 @@ pnpm test
 pnpm build
 ```
 
-## Sponsors
+## ⚖️ License
 
-<p align="center">
-  <a href="https://cdn.jsdelivr.net/gh/sxzz/sponsors/sponsors.svg">
-    <img src='https://cdn.jsdelivr.net/gh/sxzz/sponsors/sponsors.svg'/>
-  </a>
-</p>
-
-## License
-
-[MIT](./LICENSE) License © 2025 [三咲智子 Kevin Deng](https://github.com/sxzz)
+[Apache 2.0](./LICENSE) License © 2025 [Dmitriy Din](https://github.com/dmdin)
