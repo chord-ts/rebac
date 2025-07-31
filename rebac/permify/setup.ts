@@ -12,7 +12,7 @@ if (!process.env.PERMIFY_API_TOKEN) {
   throw Error('env variable PERMIFY_API_TOKEN is not set')
 }
 
-if (!process.env.PERMIFY_HOST) {
+if (!process.env.PERMIFY_TENANT) {
   throw Error('env variable PERMIFY_TENANT is not set')
 }
 
