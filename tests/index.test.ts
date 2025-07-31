@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, test, vi } from 'vitest'
 import { ReBAC } from '../src'
 import { EntryPoint, type Adapter, type Tuple } from '../src/types'
 import { grpc } from '@permify/permify-node'
-import { Permify } from '../src/adapters'
+import { Permify } from '@chord-ts/rebac/adapters'
 import 'dotenv/config'
 
 const client = grpc.newClient(

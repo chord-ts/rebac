@@ -1,7 +1,7 @@
 import { grpc } from '@permify/permify-node'
 import 'dotenv/config'
 import { ReBAC } from '.'
-import { Permify } from './adapters/permify'
+import { Permify } from '@chord-ts/rebac/adapters'
 
 // await where.member(memberId).write.project()
 // check(ctx, () => checkLicense(ctx.member.teamId), () => throwable(can.member(ctx.member.id)[action][object](ctx.body?.params[0]), errorMessage))
