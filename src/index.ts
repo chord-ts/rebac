@@ -93,7 +93,7 @@ class Sentence implements Tuple {
   adapter: Adapter
   permission?: string | undefined
   relation?: string | undefined
-  attrs: Attribute[] = []
+  attrs?: object
   entity: Ref = { type: '', id: '' }
   subject: Ref = { type: '', id: '' }
 
@@ -136,8 +136,9 @@ class Sentence implements Tuple {
 
         switch (target.entryPoint) {
           case EntryPoint.TUPLE:
-            return (id: string, attrs?: unknown) => {
+            return (id: string, attrs?: object) => {
               target.entity.id = id
+              target.attrs = attrs
               return target
             }
 

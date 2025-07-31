@@ -38,7 +38,7 @@ export type Tuple = {
   permission?: string
   relation?: string
   subject: Ref
-  attrs: Attribute[] // TODO extend types
+  attrs?: object
   entryPoint?: EntryPoint
 }
 
@@ -52,10 +52,9 @@ export type MultiRef = {
   id: string | string[]
 }
 
-
 export interface Adapter {
-  deleteEntities(...entities: MultiRef[]): Promise<{success: boolean}>
-  writeRelations(...tuples: Tuple[]): Promise<{success: boolean}>
+  deleteEntities(...entities: MultiRef[]): Promise<{ success: boolean }>
+  writeRelations(...tuples: Tuple[]): Promise<{ success: boolean }>
 
   check(target: Tuple): Promise<boolean>
   grantedActions(target: Tuple): Promise<Record<string, boolean>>

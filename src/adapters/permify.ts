@@ -73,7 +73,13 @@ export class Permify implements Adapter {
   async writeRelations(...tuples: Tuple[]) {
     const { tenantId, metadata, client } = this
     const attributes = ([] as Attribute[]).concat(
-      ...tuples.map((t) => t.attrs),
+      ...tuples.map((t) =>
+        Object.entries(t.attrs ?? {}).map(([k, v]) => ({
+          entity: { type: t.entity.type, id: t.entity.id },
+          attribute: k,
+          value: castBoolean(v),
+        })),
+      ),
     ) as PermifyAttr[]
 
     return await client.data
