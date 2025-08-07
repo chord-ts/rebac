@@ -1,21 +1,16 @@
 import { grpc } from '@permify/permify-node'
-
-import { Any } from '@permify/permify-node/dist/src/grpc/generated/google/protobuf/any'
 import type { Adapter, Tuple, Ref, MultiRef, Attribute } from '../types'
 
-const { BooleanValue, CheckResult, Attribute } = grpc.base
+const { BooleanValue, CheckResult, Attribute, attributeTypeFromJSON } =
+  grpc.base
 // const { Any } = grpc.base.protobufPackage
 type PermifyClient = ReturnType<typeof grpc.newClient>
 
 function castBoolean(value: boolean) {
   const booleanValue = BooleanValue.fromJSON({ data: value })
-  return Any.fromJSON({
-    typeUrl: 'type.googleapis.com/base.v1.BooleanValue',
-    value: BooleanValue.encode(booleanValue).finish(),
-  })
+  // FIXME untested, maybe another method
+  return attributeTypeFromJSON(booleanValue)
 }
-
-grpc.base.BooleanArrayValue
 
 export class Permify implements Adapter {
   client: PermifyClient
