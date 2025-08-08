@@ -1,6 +1,6 @@
 {
   "name": "@chord-ts/rebac",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "packageManager": "pnpm@10.11.0",
   "description": "The onward way to use ReBAC systems in TypeScript",
   "type": "module",
