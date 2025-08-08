@@ -55,7 +55,7 @@ export type MultiRef = {
 export interface Adapter {
   deleteEntities(...entities: MultiRef[]): Promise<{ success: boolean }>
   writeRelations(...tuples: Tuple[]): Promise<{ success: boolean }>
-
+  removeRelations(...tuples: Tuple[]): Promise<{ success: boolean }>
   check(target: Tuple): Promise<boolean>
   grantedActions(target: Tuple): Promise<Record<string, boolean>>
   grantedSubjects(target: Tuple): Promise<string[]>

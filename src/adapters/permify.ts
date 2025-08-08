@@ -98,6 +98,37 @@ export class Permify implements Adapter {
       })
   }
 
+  async removeRelations(...tuples: Tuple[]) {
+    const { tenantId, metadata, client } = this
+
+    const promises = tuples.map((tuple) =>
+      // TODO add multiRef support
+      client.data.delete({
+        tenantId,
+        tupleFilter: {
+          entity: {
+            type: tuple.entity.type,
+            ids: [tuple.entity.id] as string[],
+          },
+          relation: tuple.relation,
+          subject: {
+            type: tuple.subject.type,
+            ids: [tuple.subject.id] as string[],
+          },
+        },
+      }),
+    )
+
+    return Promise.all(promises)
+      .then(() => {
+        return { success: true }
+      })
+      .catch((e) => {
+        console.error(e)
+        return { success: false }
+      })
+  }
+
   async grantedEntities(target: Tuple): Promise<string[]> {
     const { tenantId, metadata, client } = this
     return client.permission

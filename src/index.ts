@@ -86,6 +86,10 @@ export class ReBAC<
   public async delete(...entities: MultiRef[]) {
     return this.#adapter.deleteEntities(...entities)
   }
+
+  public async disconnect(...tuples: Tuple[]) {
+    return this.#adapter.removeRelations(...tuples)
+  }
 }
 
 class Sentence implements Tuple {
