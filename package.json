@@ -1,6 +1,6 @@
 {
   "name": "@chord-ts/rebac",
-  "version": "0.0.3",
+  "version": "0.0.6",
   "packageManager": "pnpm@10.11.0",
   "description": "The onward way to use ReBAC systems in TypeScript",
   "type": "module",
@@ -33,8 +33,8 @@
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json",
-    "./adapters": "./dist/adapters",
-    "./helpers": "./dist/helpers"
+    "./adapters": "./dist/adapters/index.js",
+    "./helpers": "./dist/helpers/index.js"
   },
   "typesVersions": {
     "*": {
