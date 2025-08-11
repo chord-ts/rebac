@@ -110,6 +110,7 @@ export class Permify implements Adapter {
             ids: [tuple.subject.id] as string[],
           },
         },
+        attributeFilter: {}
       }),
     )
 
