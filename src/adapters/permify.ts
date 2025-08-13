@@ -110,7 +110,7 @@ export class Permify implements Adapter {
             ids: [tuple.subject.id] as string[],
           },
         },
-        attributeFilter: {}
+        attributeFilter: {},
       }),
     )
 
@@ -125,6 +125,7 @@ export class Permify implements Adapter {
   }
 
   async grantedEntities(target: Tuple): Promise<string[]> {
+    if (!target.subject.id || !target.entity.type) return []
     const { tenantId, metadata, client } = this
     return client.permission
       .lookupSubject({
@@ -140,6 +141,7 @@ export class Permify implements Adapter {
   }
 
   async grantedActions(target: Tuple) {
+    if (!target.entity.id || target.subject.id) return {}
     const { tenantId, metadata, client } = this
     return client.permission
       .subjectPermission({
@@ -159,8 +161,8 @@ export class Permify implements Adapter {
   }
 
   async grantedSubjects(target: Tuple) {
+    if (!target.subject.id || !target.entity.type) return []
     const { tenantId, metadata, client } = this
-
     return client.permission
       .lookupEntity({
         tenantId,
@@ -173,6 +175,7 @@ export class Permify implements Adapter {
   }
 
   async check(target: Tuple) {
+    if (!target.entity.id || !target.subject.id) return false
     const { tenantId, metadata, client } = this
     return client.permission
       .check({
