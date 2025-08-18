@@ -141,7 +141,7 @@ export class Permify implements Adapter {
   }
 
   async grantedActions(target: Tuple) {
-    if (!target.entity.id || target.subject.id) return {}
+    if (!target.entity.id || !target.subject.id) return {}
     const { tenantId, metadata, client } = this
     return client.permission
       .subjectPermission({

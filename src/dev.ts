@@ -1,7 +1,7 @@
 import { grpc } from '@permify/permify-node'
 import 'dotenv/config'
 import { ReBAC } from '.'
-import { Permify } from '@chord-ts/rebac/adapters'
+import { Permify } from './adapters/permify'
 
 // await where.member(memberId).write.project()
 // check(ctx, () => checkLicense(ctx.member.teamId), () => throwable(can.member(ctx.member.id)[action][object](ctx.body?.params[0]), errorMessage))
@@ -57,14 +57,16 @@ const client = grpc.newClient(
   grpc.newAccessTokenInterceptor(process.env.PERMIFY_API_TOKEN!),
 )
 
-const tenantId = 'testing'
+console.log(process.env.PERMIFY_TENANT)
+
+const tenantId = process.env.PERMIFY_TENANT!
 const schemaVersion = await client.schema.list({ tenantId }).then((r) => r.head)
 const metadata = { schemaVersion, depth: 20 }
 type Entities = 'user' | 'project'
-type Permify = 'admin' | 'manager'
+type Permissions = 'admin' | 'manager'
 type Permission = 'delete' | 'edit' | 'invite'
 
-const rebac = new ReBAC<Entities, Permify, Permission>(
+const rebac = new ReBAC<Entities, Permissions, Permission>(
   new Permify(client, tenantId, metadata),
 )
 
@@ -83,21 +85,26 @@ async function setup() {
 }
 
 async function checks() {
-  const access1 = await rebac.can.user('1').delete.project('1')
-  const access2 = await rebac.can.user('2').delete.project('1')
-  const access3 = await rebac.can.user('2').edit.project('1')
-  const access4 = await rebac.can.user('1').edit.project('1')
-  console.log('Checked access:', access1, access2, access3, access4)
+  // const access1 = await rebac.can.user('1').delete.project('1')
+  // const access2 = await rebac.can.user('2').delete.project('1')
+  // const access3 = await rebac.can.user('2').edit.project('1')
+  // const access4 = await rebac.can.user('1').edit.project('1')
+  // console.log('Checked access:', access1, access2, access3, access4)
 
-  const actions1 = await rebac.what.user('1').canDo.project('1')
-  const actions2 = await rebac.what.user('2').canDo.project('1')
-  console.log('Checked actions:', actions1, actions2)
+  // const actions1 = await rebac.what.user('1').canDo.project('1')
+  // const actions2 = await rebac.what.user('2').canDo.project('1')
+  // console.log('Checked actions:', actions1, actions2)
 
-  const accessList1 = await rebac.who.project('1').delete.user()
-  const accessList2 = await rebac.who.project('1').invite.user()
-  console.log('Checked access list:', accessList1, accessList2)
+  // const accessList1 = await rebac.who.project('1').delete.user()
+  // const accessList2 = await rebac.who.project('1').invite.user()
+  // console.log('Checked access list:', accessList1, accessList2)
+
+  rebac.what
+    .user('eb6b62f9-6851-43b6-bce7-92e970997cdd')
+    .canDo.folder('81db4c6f-b0ac-478a-9d75-376ca1fa99b8')
+    .then(console.log)
 }
 
-setup()
+// setup()
 
 checks()
